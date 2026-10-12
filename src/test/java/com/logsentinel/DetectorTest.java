@@ -21,7 +21,7 @@ class DetectorTest {
     }
 
     @Test
-    void rootLoginRaisesMediumAlert() {
+    void bruteForceRaisesMediumAlert() {
         List<LogEvent> events = List.of(
                 new LogEvent("Oct 13 12:56:12", "root", "200.0.3.10", false),
                 new LogEvent("Oct 13 12:56:14", "user", "200.0.3.10", false),
@@ -36,7 +36,7 @@ class DetectorTest {
     }
 
     @Test
-    void rootLoginRaiseNoAlert() {
+    void fewFailuresRaiseNoAlert() {
         List<LogEvent> events = List.of(
                 new LogEvent("Oct 13 12:56:12", "root", "200.0.3.10", false),
                 new LogEvent("Oct 13 12:56:15", "root", "200.0.3.10", false));

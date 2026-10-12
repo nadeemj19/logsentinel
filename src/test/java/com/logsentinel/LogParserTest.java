@@ -30,4 +30,11 @@ class LogParserTest {
         assertNull(event);
     }
 
+    @Test
+    void parsesSingleDigitDay() {
+        LogEvent event = parser.parse(" Oct 2 03:14:01 server sshd[1201]: Failed password for root from 203.0.113.7 port 52211 ssh2");
+        assertEquals("Oct 2 03:14:01", event.time());
+    }
+
+
 }

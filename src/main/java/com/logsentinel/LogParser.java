@@ -9,7 +9,7 @@ public class LogParser {
 
         boolean success = line.contains("Accepted password");
 
-        String[] parts = line.split(" ");
+        String[] parts = line.split(" +");
 
         String time = parts[0] + " " + parts[1] + " " + parts[2];
 
