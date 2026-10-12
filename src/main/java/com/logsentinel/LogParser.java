@@ -21,19 +21,10 @@ public class LogParser {
                 user = parts[i - 1];
 
                 ip = parts[i + 1];
-
-
             }
-
-
-
         }
-
         return new LogEvent(time, user, ip, success);
-
     }
-
-
 }
 
 
