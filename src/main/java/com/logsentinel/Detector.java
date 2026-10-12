@@ -16,18 +16,17 @@ public class Detector {
             }
             if (!event.success()) {
                 failures.put(event.ip(), failures.getOrDefault(event.ip(), 0) + 1);
-
-
             }
-            for (String ip : failures.keySet()) {
-                int count = failures.get(ip);
-                if (count >= 3) {
-                    alerts.add(new Alert("MEDIUM", "Brute force " + ip + " failed " + count + " times"));
 
-                }
+        }
+        for (String ip : failures.keySet()) {
+            int count = failures.get(ip);
+            if (count >= 3) {
+                alerts.add(new Alert("MEDIUM", "Brute force " + ip + " failed " + count + " times"));
+
             }
         }
-
         return alerts;
     }
 }
+
