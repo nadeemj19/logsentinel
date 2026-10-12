@@ -25,6 +25,14 @@ public class Main {
         for (Alert alert : alerts) {
             System.out.println(alert);
         }
+
+        AiAnalyzer analyzer = new AiAnalyzer();
+        AiReport report = analyzer.analyze(alerts);
+        System.out.println("=== AI Analysis ===");
+        System.out.println(report.summary());
+        for (AiFinding finding : report.findings()) {
+            System.out.println(finding);
+        }
     }
 }
 
