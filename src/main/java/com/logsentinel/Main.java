@@ -11,9 +11,7 @@ public class Main {
         for (String line : lines) {
             System.out.println(line);
         }
-        LogEvent e = new LogEvent("Oct 12 15:09:01", "root",
-                "203.0.115.8", false);
-        System.out.println(e.ip());
+
 
 
     }
