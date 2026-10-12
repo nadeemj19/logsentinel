@@ -6,9 +6,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Main {
+
     public static void main(String[] args) throws IOException {
-        List<String> lines = Files.readAllLines(Path.of("samples/auth.log"));
+        String path = "samples/auth.log";
+        if (args.length > 0) {
+            path = args[0];
+        }
+        List<String> lines = Files.readAllLines(Path.of(path));
         LogParser parser = new LogParser();
         List<LogEvent> events = new ArrayList<>();
         for (String line : lines) {
@@ -16,6 +22,7 @@ public class Main {
             if (event != null) {
                 events.add(event);
             }
+
         }
 
         System.out.println("Parsed " + events.size() + " login events");

@@ -5,27 +5,36 @@
 A command-line tool that scans Linux SSH logs for suspicious login activity and uses an LLM to explain each threat and recommend a fix.
 
 ## What it does
-- Parses `auth.log`-style SSH logs into structured login events
+- Parses `auth.log`-style SSH logs into structured login events (any log file can be passed as an argument)
 - Detects **successful root logins** (HIGH severity)
 - Detects **brute-force attempts**: 3 or more failed logins from the same IP (MEDIUM severity)
 - Sends the alerts to Claude, which returns a structured report with a plain-English explanation and a recommendation for each one
+- Tested on 2,000 lines of real-world SSH logs from the [Loghub](https://github.com/logpai/loghub) dataset
 
-## Example output
+## Example output (real-world data)
+Run against `samples/OpenSSH_2k.log`, a real server's SSH log from Loghub:
 ```
-Parsed 6 login events
-Alert[severity=HIGH, message=Root login from 192.0.2.50]
-Alert[severity=MEDIUM, message=Brute force 203.0.113.7 failed 4 times]
+Parsed 521 login events
+Alert[severity=MEDIUM, message=Brute force 183.62.140.253 failed 286 times]
+Alert[severity=MEDIUM, message=Brute force 187.141.143.180 failed 80 times]
+Alert[severity=MEDIUM, message=Brute force 103.99.0.122 failed 46 times]
+... (12 attacking IPs in total)
 
 === AI Analysis ===
-Two SSH alerts were reviewed. The most important is a successful direct root login from
-192.0.2.50: it is HIGH severity and should be verified as authorised right away...
-AiFinding[severity=HIGH, explanation=Someone successfully logged in over SSH directly as
-the root (administrator) account..., recommendation=Immediately verify with your
-administrators whether this login was authorised... set 'PermitRootLogin no'...]
-AiFinding[severity=MEDIUM, explanation=IP 203.0.113.7 failed to authenticate 4 times...,
-recommendation=...block it and deploy rate limiting such as fail2ban...]
+The server's SSH service is being hit by typical internet-wide automated brute-force
+activity from 12 IPs, totalling about 502 failed logins. Two sources stand out:
+183.62.140.253 (286 failures) and 187.141.143.180 (80 failures)... Two addresses in
+103.207.39.0/24 suggest coordinated scanning...
+AiFinding[severity=HIGH, explanation=183.62.140.253 failed 286 times. This is by far the
+most aggressive source: a persistent, high-volume brute-force campaign..., recommendation=
+Block the IP at the perimeter now and audit all logins for this IP...]
+AiFinding[severity=LOW, explanation=103.207.39.212 failed 3 times. This is low volume on its
+own, but it comes from the same /24 block as 103.207.39.16, which points to coordinated
+scanning..., recommendation=Block 103.207.39.0/24 as a range rather than individual IPs.]
 ```
-*(Output trimmed. The sample log uses reserved documentation IP ranges.)*
+*(Output trimmed.)* The AI spotted that two attacking IPs share a network block (likely one attacker), which per-IP rules can't detect.
+
+Running with no argument uses `samples/auth.log`, a small hand-written log that also triggers the root-login rule.
 
 ## How it works
 1. **`LogParser`** reads each log line and extracts the time, user, IP and whether the login succeeded. Lines that aren't SSH logins are skipped.
@@ -44,10 +53,11 @@ recommendation=...block it and deploy rate limiting such as fail2ban...]
 **Requirements:** Java 25, Maven and an Anthropic API key.
 
 1. Set your API key as an environment variable called `ANTHROPIC_API_KEY`
-2. Run:
+2. Run against the real-world sample (or any SSH log file):
    ```
-   mvn compile exec:java -Dexec.mainClass=com.logsentinel.Main
+   mvn compile exec:java -Dexec.mainClass=com.logsentinel.Main -Dexec.args="samples/OpenSSH_2k.log"
    ```
+   Leave out `-Dexec.args=...` to use the default `samples/auth.log`.
 
 ## Running the tests
 ```
@@ -56,7 +66,9 @@ mvn test
 No API key is needed: the tests cover the parser and the detection rules, and never call the AI.
 
 ## Future improvements
+- Scale severity with volume (e.g. 50+ failures = HIGH) instead of rating all brute force MEDIUM, as the AI itself suggested
 - Use real timestamps so brute force means "N failures **within X minutes**", not N failures in total
-- Run against real-world datasets (e.g. the Loghub OpenSSH logs)
 - Support more log formats, such as web server access logs
-- Accept the log file path as a command-line argument
+
+## Data
+`samples/OpenSSH_2k.log` is from [Loghub](https://github.com/logpai/loghub), a collection of real system logs published for research by the LogPAI team. `samples/auth.log` is a small hand-written sample.
