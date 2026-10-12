@@ -29,8 +29,7 @@ public class LogParser {
 
         }
 
-        return null;
-
+        return new LogEvent(time, user, ip, success);
 
     }
 

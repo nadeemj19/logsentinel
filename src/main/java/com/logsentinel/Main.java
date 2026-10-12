@@ -8,12 +8,17 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws IOException {
         List<String> lines = Files.readAllLines(Path.of("samples/auth.log"));
+        LogParser parser = new LogParser();
         for (String line : lines) {
-            System.out.println(line);
+            LogEvent event = parser.parse(line);
+            if (event != null) {
+                System.out.println(event);
+            }
         }
 
 
-
     }
-
 }
+
+
+
